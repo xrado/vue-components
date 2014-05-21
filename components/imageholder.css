@@ -1,0 +1,35 @@
+x-imageholder {
+	display: inline-block;
+	width: 150px;
+	height: 150px;
+	
+	margin:10px;
+	text-align: center;
+	position: relative;
+	float: left;
+
+	padding: 5px;
+
+	background-color: #fff;
+	border: 1px solid #ccc;
+	border: 1px solid rgba(0,0,0,.15);
+	border-radius: 4px;
+	-webkit-box-shadow: 0 6px 12px rgba(0,0,0,.175);
+	box-shadow: 0 6px 12px rgba(0,0,0,.175);
+	background-clip: padding-box;
+}
+x-imageholder.hover { background: green; }
+x-imageholder img {
+	max-width: 95%;
+	max-height: 95%;
+}
+x-imageholder div.remove {
+	position: absolute;
+	top: 3px;
+	right: 3px;
+	color: red;
+	cursor: pointer;
+	font-weight: bold;
+	line-height: 10px;
+	font-size: 18px;
+}

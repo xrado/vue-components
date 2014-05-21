@@ -1,0 +1,8 @@
+<ul v-on="dragover:dragover, drop:drop">
+	<li v-repeat="items" 
+		draggable="true" 
+		v-on="dragstart:dragstart, dragend:dragend, dragover:dragover, dragenter:dragenter" 
+		v-on="dragover:dragover, dragenter:dragenter">
+		{{$value}}
+	</li>
+</ul>

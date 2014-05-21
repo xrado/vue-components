@@ -1,0 +1,15 @@
+<div class="x-autocomplete-holder">
+	<input type="text" 
+		v-model="value" 
+		v-on="keyup: keys, blur:hide"  
+		class="x-autocomplete-input form-control"
+		v-style="width: width" 
+		autocomplete="off" 
+		autocapitalize="off" 
+		autocorrect="off" >
+	<div class="x-autocomplete-suggestions" v-show="showList" v-ref="list" v-style="width: width">
+		<ul>
+			<li v-repeat="suggestions" v-class="selected: selected" v-on="click:_select($index)"><content>{{value}}</content></li>
+		</ul>
+	</div>
+</div>

@@ -1,0 +1,52 @@
+<br>
+<div id="demo">
+	<h3>demo</h3> <br>
+	<table>
+		<tr>
+			<td style="width:40px;">name </td>
+			<td>
+				<input type="text" name="name" v-model="name" v-valid="required,minLength:3">
+			</td>
+		</tr>
+	</table>
+	<br>
+	<ul>
+    	<li v-repeat="contents" v-component="content"></li>
+	</ul>
+	
+
+	<button v-on="click:onAdd">Add</button>
+	<button v-on="click:onSave">Save</button>
+	<button v-on="click:onOpen">Open modal</button>
+
+	<hr>
+	<h3>x-autocomplete</h3> <br>
+	<x-autocomplete v-options="options: getOptions, select: onSelect, width: 300px" v-ref="auto1">
+			{{value}} select
+	</x-autocomplete><br>
+	               
+	<hr>
+	<h3>x-colorpicker</h3> <br>
+	<x-colorpicker v-with="value:color1"></x-colorpicker><br>
+	<x-colorpicker v-with="value:color2"></x-colorpicker>
+
+	<hr>
+	<h3>x-imageholder</h3> <br style="clear:both">
+	<x-imageholder v-with="value:image1"></x-imageholder>
+	<x-imageholder v-with="value:image2"></x-imageholder>
+
+	<img v-attr="src:'guitar1.JPG'" alt="" v-draggable="type:'image',value:'guitar1.JPG'">
+	<img v-attr="src:'guitar2.JPG'" alt="" v-draggable="type:'image',value:'guitar2.JPG'">
+
+	<hr>
+	<h3>x-sortable</h3> <br>
+
+	<x-sortable v-with="items:list"></x-sortable>
+
+	<hr>
+	<h3>x-datepicker</h3> <br>
+	<x-datepicker v-with="value:date" v-options="format:'YYYY-MM-DD', placeholder: 'enter date'"></x-datepicker>
+	
+
+</div>
+<br>

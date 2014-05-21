@@ -1,0 +1,37 @@
+<div class="input-group">
+	<input type="text" v-model="value" placeholder="" v-on="focus: onFocus, blur: onBlur" class="x-datepicker-input form-control">
+	<span class="x-colorpicker-color input-group-addon"><i class="fa fa-calendar"></i></span>
+</div>
+<div class="x-datepicker-holder hide">
+	<div class="x-datepicker">
+		<table class="x-datepicker-months" style="margin:5px 0">
+			<tr>
+				<td style="width:15%"><button v-on="click: changeMonth('prev')">&lt;</button></td>
+				<td align="center" class="month">{{monthName}}</td>
+				<td align="right" style="width:15%"><button v-on="click: changeMonth('next')" >&gt;</button></td>
+			</tr>
+		</table>
+		<table class="x-datepicker-days">
+			<thead>
+			<tr>
+				<th>Sun</th>
+				<th>Mon</th>
+				<th>Tue</th>
+				<th>Wed</th>
+				<th>Thr</th>
+				<th>Fri</th>
+				<th>Sat</th>
+			</tr>
+			</thead>
+			<tbody v-on="click:setDate">
+				<tr v-repeat="week: month">
+					<td v-repeat="day: week.days" 
+						rel="{{day.date}}" 
+						v-class="today: day.today, selected: day.selected, notmonth: !day.thisMonth">
+						{{day.day}}
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>

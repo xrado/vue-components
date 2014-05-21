@@ -1,0 +1,63 @@
+
+.x-datepicker-holder { position:relative; }
+.x-datepicker { 
+    position:absolute;  width:200px; 
+    z-index: 1000;
+padding: 5px;
+margin: 2px 0 0;
+background-color: #fff;
+border: 1px solid #ccc;
+border: 1px solid rgba(0,0,0,.15);
+border-radius: 4px;
+-webkit-box-shadow: 0 6px 12px rgba(0,0,0,.175);
+box-shadow: 0 6px 12px rgba(0,0,0,.175);
+background-clip: padding-box;
+}
+.x-datepicker table { width:100%; }
+.x-datepicker-months { table-layout:fixed; white-space: nowrap; }
+.x-datepicker-days { table-layout:fixed; border:1px solid #ccc; width:100%; border-collapse: collapse; font-size:11px; }
+.x-datepicker-days td { border:1px solid #ccc; padding:1px 2px; height:20px; text-align:center; }
+.x-datepicker-days th { border:1px solid #ccc; color:#404040; vertical-align:middle; padding: 5px 2px 4px; line-height: 14px;
+      font-weight: bold;
+      vertical-align: middle;
+      background-color:#ddd;
+      vertical-align: top;
+      text-align:center; }
+.x-datepicker-days tbody td { cursor:pointer; }
+.x-datepicker-days td.today { color: green; }
+.x-datepicker-days td.selected { background:#68B94F; color:white; }
+.x-datepicker-days td.notmonth { color:#bbb; }
+
+/*
+div.datepicker {
+  table.pickermonth { width:100%;}
+  table.datepicker {
+    border:1px solid #ccc; width:100%; border-collapse: collapse; font-size:11px;
+    td { border:1px solid #ccc; padding:1px 2px; height:20px; text-align:center; }
+    th { border:1px solid #ccc; color:#404040; vertical-align:middle; padding: 5px 2px 4px; line-height: 14px;
+      font-weight: bold;
+      vertical-align: middle;
+      background-color:#ddd;
+      vertical-align: top;
+      text-align:center;
+    }
+    tbody td { cursor:pointer; }
+    td.taken { background:#D02B1B; color:white; }
+    td.selected, td.notmonth.selected { background:#68B94F; color:white; }
+    td.notmonth { color:#bbb; }
+    td.disabled {opacity: 0.2;color:#bbb}
+  }
+}
+*/
+
+
+z-index: 1000;
+padding: 5px 0;
+margin: 2px 0 0;
+background-color: #fff;
+border: 1px solid #ccc;
+border: 1px solid rgba(0,0,0,.15);
+border-radius: 4px;
+-webkit-box-shadow: 0 6px 12px rgba(0,0,0,.175);
+box-shadow: 0 6px 12px rgba(0,0,0,.175);
+background-clip: padding-box;
