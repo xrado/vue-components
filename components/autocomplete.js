@@ -23,7 +23,7 @@ define(function(require){
 
 	var component = Vue.extend({
 		data: {
-			minlen: 2,
+			minlen: 1,
 			width: '100px',
 			showList: false,
 			selected: null,
@@ -34,11 +34,15 @@ define(function(require){
 			options: options
 		},
 		ready: function(){
-			this.$input = this.$el.querySelector('div.x-autocomplete-input');
+			this.$input = this.$el.querySelector('input.x-autocomplete-input');
 			this.$list = this.$el.querySelector('div.x-autocomplete-suggestions');
+			this.$watch('suggestions',function(){
+				utils.removeClass(this.$input,'loading');
+			}.bind(this));
 		},
 		methods: {
 			keys: function (event) {
+				var self = this;
 				var key = event.keyIdentifier || event.key;
 				console.log(key,event.keyCode,event)
 				if(['Left','Right','Tab'].indexOf(key) != -1) return; // Ignored keys
@@ -57,8 +61,12 @@ define(function(require){
 				}
 				if(this.value) {
 					if(this.timer) clearTimeout(this.timer);
+					console.log('input',this.$input);
 					if(this.value && this.value.length >= this.minlen && this.options) {
-						this.timer = setTimeout(this.options.bind(this.vm),1000);
+						this.timer = setTimeout(function(){
+							utils.addClass(this.$input,'loading');
+							this.options.call(this.vm);
+						}.bind(this),400);
 					}
 				}
 				else this.hide();
@@ -94,7 +102,6 @@ define(function(require){
 				if(!this.suggestions || !this.suggestions.length) return;
 				console.log('selected',this,JSON.stringify(this.suggestions[+(this.selected || index)]));
 				this.select.call(this.vm,this.suggestions[+(this.selected || index)])
-				this.value = '';
 				this.hide();
 			}
 		}

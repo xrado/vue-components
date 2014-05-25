@@ -7,7 +7,9 @@
 	margin: 0;
 }
 .x-autocomplete-input.loading {
-	background-color: gray;
+	background-image: url(/components/autocomplete.gif);
+	background-repeat: no-repeat;
+	background-position: center right;
 }
 
 .x-autocomplete-suggestions {
