@@ -5,7 +5,7 @@
 		<tr>
 			<td style="width:40px;">name </td>
 			<td>
-				<input type="text" name="name" v-model="name" v-valid="required,minLength:3">
+				<input type="text" name="name" v-model="name">
 			</td>
 		</tr>
 	</table>
@@ -14,10 +14,16 @@
     	<li v-repeat="contents" v-component="content"></li>
 	</ul>
 	
-
 	<button v-on="click:onAdd">Add</button>
 	<button v-on="click:onSave">Save</button>
 	<button v-on="click:onOpen">Open modal</button>
+
+	<hr>
+	<h3>x-highchart</h3> <br>
+	<button class="btn btn-small" v-on="click:changeChartData">Change data</button>
+	<button class="btn btn-small" v-on="click:addSerie">Add</button>
+	<br>
+	<x-highchart v-with="options:chartOptions"></x-highchart>	
 
 	<hr>
 	<h3>x-autocomplete</h3> <br>
@@ -46,7 +52,6 @@
 	<hr>
 	<h3>x-datepicker</h3> <br>
 	<x-datepicker v-with="value:date" v-options="format:'YYYY-MM-DD', placeholder: 'enter date'"></x-datepicker>
-	
 
 </div>
 <br>

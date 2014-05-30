@@ -10,6 +10,7 @@ var colorpicker = require('components/colorpicker');
 var datepicker = require('components/datepicker');
 var imageholder = require('components/imageholder');
 var sortable = require('components/sortable');
+var highchart = require('components/highchart');
 
 ['forEach', 'map', 'filter', 'reduce', 'reduceRight', 'every', 'some'].forEach(
     function(p) {
@@ -17,95 +18,7 @@ var sortable = require('components/sortable');
 });
 
 Vue.component('content', {
-	template: '<input type="text" v-model="content" v-valid="required"> <input type="checkbox" v-model="done"> <button v-on="click:onRemove($index)">X</button>'
-});
-
-Vue.validators = {
-	trim: {
-		errMsg: null,
-		test: function(element,arg){
-			if(element.value) element.value = element.value.replace(/(^\s+|\s+$)/g, '');
-			return true;
-		}
-	},
-	required: {
-		errMsg: 'required',
-		test: function(element,arg){
-			return !!element.value;
-		}
-	},
-	minLength: {
-		errMsg: function(element,arg){
-			return 'min '+arg+' characters required';
-		},
-		test: function(element,arg){
-			return element.value && element.value.length && element.value.length >= +arg;
-		}
-	},
-	maxLength: {
-		errMsg: function(element,arg){
-			return 'max '+arg+' characters allowed';
-		},
-		test: function(element,arg){
-			return element.value && element.value.length && element.value.length <= +arg;
-		}
-	}
-}
-
-// Validator
-
-Vue.directive('valid', {
-    bind: function (value) {
-
-        var self = this,
-            el   = self.el,
-            type = el.type,
-            tag  = el.tagName;
-
-            console.log('bind1',this.el.validIndex);
-
-       	if (!this.vm._valid) this.vm._valid = [];
-       	if(typeof this.el.validIndex == 'undefined') {
-       		this.el.validIndex = this.vm._valid.length;
-       		console.log('bind',this.el.validIndex);
-       		this.vm._valid.push({
-       			validate: [],
-       			directive: this
-       		});
-
-       		console.log('l',this.vm._valid.length);
-
-	    	this.onValidate = self.validate.bind(this);
-	       	el.addEventListener('keyup', this.onValidate);
-	       	el.addEventListener('change', this.onValidate);
-	       	el.addEventListener('blur', this.onValidate);
-	    }
-       	//utils.nextTick(this.onValidate);
-    },
-    update: function () {
-    	console.log('update',this.el.validIndex);
-    	this.vm._valid[this.el.validIndex].validate.push({
-    		validator: this.arg || this.key,
-    		arg: this.key || null,
-    	});
-    },
-    validate: function () {
-    	console.log('vi',this.el.validIndex);
-    	if(this.vm._valid[this.el.validIndex].validate.length){
-    		utils.removeClass(this.el,'invalid');
-    		utils.removeClass(this.el,'valid');
-    		var valid = this.vm._valid[this.el.validIndex].validate.every(function(d){
-    			return Vue.validators[d.validator].test.call(this,this.el,d.arg);
-    		}.bind(this));
-    		utils.addClass(this.el,valid?'valid':'invalid');
-    	}
-    	var value = this.el.value;
-    },
-    unbind: function () {
-        this.el.removeEventListener('keyup', this.onValidate);
-        this.el.removeEventListener('change', this.onValidate);
-        this.el.removeEventListener('blur', this.onValidate);
-    }
+	template: '<input type="text" v-model="content"> <input type="checkbox" v-model="done"> <button v-on="click:onRemove($index)">X</button>'
 });
 
 Vue.directive('draggable', {
@@ -139,12 +52,12 @@ Vue.directive('draggable', {
     }
 });
 
-// Autocomplete
 Vue.component('x-autocomplete', autocomplete);
 Vue.component('x-colorpicker', colorpicker);
 Vue.component('x-datepicker', datepicker);
 Vue.component('x-imageholder', imageholder);
 Vue.component('x-sortable', sortable);
+Vue.component('x-highchart', highchart);
 
 var demo = new Vue({
 	template: tpl,
@@ -165,10 +78,15 @@ var demo = new Vue({
 		],
 		color1: '#555555',
 		color2: null,
-		image1: 'guitar1.JPG',
+		image1: 'guitar1.jpg',
 		image2: null,
 		list: [1,2,3,4,5,6],
-		date: '2014-05-21'
+		date: '2014-05-21',
+		chartOptions: {
+			series: [{
+            	data: [29.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4]
+        	}]
+		}
 	},
 	methods: {
 		isValid: function () {
@@ -213,8 +131,16 @@ var demo = new Vue({
 		getOptions2: function () {
 			console.log('getOptions2',this,arguments);
 		},
-		onSelect: function (){
-			console.log('selected',this,arguments);
+		onSelect: function (selected){
+			console.log('selectedXXX',selected,this,arguments);
+			if(selected) this.$.auto1.$input.value = selected.value;
+		},
+		////
+		changeChartData: function(){
+			this.chartOptions.series.$set(this.chartOptions.series.length-1,{name:'asd',data: [20.9, 51.5, 10.4, 12.2, 144.0, 6.0, 35.6, 148.5, 216.4, 94.1, 95.6, 54.4,200, 300, 400]});
+		},
+		addSerie: function(){
+			this.chartOptions.series.push({data: [20.9, 51.5, 10.4, 1.2, 14.0, 6.0, 35.6, 48.5, 216.4, 4.1, 55.6, 54.4]});
 		}
 	},
 	attached: function  (argument) {
