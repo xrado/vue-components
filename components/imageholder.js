@@ -21,6 +21,8 @@ define(function(require){
 				self.$root._dragging.forEach(function(el) {
 			        if (el.type == 'image' && el.el.draggingAt.x == e.x && el.el.draggingAt.y == e.y) {
 			            this.className += " hover";
+			            if(!el.enter) el.enter = 1;
+			            else ++el.enter;
 			        }
 			    }, this);
 			});
@@ -28,17 +30,17 @@ define(function(require){
 			this.$el.addEventListener('dragleave', function (e) {
 				 self.$root._dragging.forEach(function(el) {
 			        if (el.type == 'image' && el.el.draggingAt.x == e.x && el.el.draggingAt.y == e.y) {
-			            this.className = el.el.className.replace(/ hover\b/g, "");
+			            if(el.enter) --el.enter 
+			            if(!el.enter) this.className = el.el.className.replace(/ hover\b/g, "");
 			        }
 			    }, this);
 			});
 
 			this.$el.addEventListener('drop', function (e) {
-				console.log('drop',self.$get('_dragging'))
 				if (e.preventDefault) e.preventDefault(); // allows us to drop
-				if (e.stopPropagation) e.stopPropagation(); // stops the browser from redirecting...why???
+				if (e.stopPropagation) e.stopPropagation(); // stops the browser from redirecting
+
 				this.className = '';	
-				//console.log('drop',e.dataTransfer.getData('Text'),this,self);
 				var dropped = self.$root._dragging.filter(function(el) {
 					return el.type == 'image' && el.value == e.dataTransfer.getData('Text');
 			    });
@@ -49,15 +51,11 @@ define(function(require){
 				if(dropped.vm) dropped.vm.value = self.value;
 
 				self.value = dropped.value; //e.dataTransfer.getData('Text');
-
-				console.log('droped',dropped);
 			});
 
 			// swap support
 			var $img = this.$el.querySelector('img');
-
 			$img.addEventListener('dragstart', function (e) {
-				console.log('dragstart2')
 				self.$root._dragging[0].vm = self;
 			});
 
