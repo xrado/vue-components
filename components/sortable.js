@@ -48,6 +48,7 @@ define(function(require){
 		  dragenter: function(ev){
 			var insertIndex, sourceIndex, removed;
 			insertIndex = ev.targetVM.$index;
+			if(!this._dragElem) return;
 			sourceIndex = this._dragElem.$index;
 			if (sourceIndex === insertIndex) {
 			  return;

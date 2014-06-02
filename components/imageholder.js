@@ -17,12 +17,13 @@ define(function(require){
 				return false;
 			});
 
+			this._enter = 0; // fix issue with dragenter/live firing on childs
+
 			this.$el.addEventListener('dragenter', function (e) {
 				self.$root._dragging.forEach(function(el) {
 			        if (el.type == 'image' && el.el.draggingAt.x == e.x && el.el.draggingAt.y == e.y) {
 			            this.className += " hover";
-			            if(!el.enter) el.enter = 1;
-			            else ++el.enter;
+			            ++self._enter;
 			        }
 			    }, this);
 			});
@@ -30,8 +31,9 @@ define(function(require){
 			this.$el.addEventListener('dragleave', function (e) {
 				 self.$root._dragging.forEach(function(el) {
 			        if (el.type == 'image' && el.el.draggingAt.x == e.x && el.el.draggingAt.y == e.y) {
-			            if(el.enter) --el.enter 
-			            if(!el.enter) this.className = el.el.className.replace(/ hover\b/g, "");
+						if(self._enter) --self._enter;
+						if(!self._enter) this.className = el.el.className.replace(/ hover\b/g, "");
+
 			        }
 			    }, this);
 			});
@@ -41,6 +43,7 @@ define(function(require){
 				if (e.stopPropagation) e.stopPropagation(); // stops the browser from redirecting
 
 				this.className = '';	
+				self._enter = 0;
 				var dropped = self.$root._dragging.filter(function(el) {
 					return el.type == 'image' && el.value == e.dataTransfer.getData('Text');
 			    });
