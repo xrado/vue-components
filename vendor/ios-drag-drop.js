@@ -57,6 +57,7 @@
         log('cleanup');
         this.touchPositions = {};
         this.dragData = null;
+        document.body.removeChild(this.el);
         return [move, end, cancel].forEach(function(handler) {
           return handler.off();
         });
@@ -127,12 +128,13 @@
         this.dispatchDrop(target);
       } else {
         log('no drop target, scheduling snapBack');
-        document.body.removeChild(this.el);
+        
       }
 
       var dragendEvt = doc.createEvent('Event');
       dragendEvt.initEvent('dragend', true, true);
       this.el.dispatchEvent(dragendEvt);
+      this.source.dispatchEvent(dragendEvt);
     },
     dispatchDrop: function(target) {
       var snapBack = true;
@@ -145,7 +147,7 @@
         }.bind(this)
       };
       dropEvt.preventDefault = function() {
-        document.body.removeChild(this.el);
+        
       }.bind(this);
 
       target.dispatchEvent(dropEvt);
