@@ -1,66 +1,76 @@
-(function(doc) {
+(function(window, doc) {
+  'use strict';
 
-  log = function() {}; // noOp, remove this line to enable debugging
-
-  main()
-
-  var coordinateSystemForElementFromPoint;
+  main();
 
   function main() {
-    coordinateSystemForElementFromPoint = navigator.userAgent.match(/OS 5(?:_\d+)+ like Mac/) ? "client" : "page";
 
     var div = doc.createElement('div');
-    dragDiv = 'draggable' in div;
-    evts = 'ondragstart' in div && 'ondrop' in div;
+    var dragDiv = 'draggable' in div;
+    var evts = 'ondragstart' in div && 'ondrop' in div;
 
     var needsPatch = !(dragDiv || evts) || /iPad|iPhone|iPod|android/i.test(navigator.userAgent);
-    log((needsPatch ? "" : "not ") + "patching html5 drag drop");
+    log((needsPatch ? '' : 'not ') + 'patching html5 drag drop');
 
-    if(!needsPatch) return
+    if (!needsPatch) {
+      return;
+    }
 
-    doc.addEventListener("touchstart", touchstart);
+    doc.addEventListener('touchstart', touchstart);
   }
 
-  function DragDrop(event, el) {
+  function DragDrop(event, el, source) {
 
     this.touchPositions = {};
     this.dragData = {};
-    this.el = el || event.target
+    this.el = el || event.target;
+    this.source = source;
+    this.isClick = true;
 
     event.preventDefault();
 
-    log("dragstart");
+    log('dragstart');
 
-    this.dispatchDragStart()
+    this.dispatchDragEvent('dragstart', this.source);
     this.elTranslation = readTransform(this.el);
 
-    this.listen()
+    this.listen();
 
   }
 
   DragDrop.prototype = {
     listen: function() {
-      var move = onEvt(doc, "touchmove", this.move, this);
-      var end = onEvt(doc, "touchend", ontouchend, this);
-      var cancel = onEvt(doc, "touchcancel", cleanup, this);
+      var move = onEvt(doc, 'touchmove', this.move, this);
+      var end = onEvt(doc, 'touchend', ontouchend, this);
+      var cancel = onEvt(doc, 'touchcancel', cleanup, this);
 
       function ontouchend(event) {
-        this.dragend(event, event.target);
-        cleanup();
+        if (this.isClick) {
+          this.click(event);
+        } else {
+          this.dragend(event);
+        }
+        cleanup.bind(this)();
       }
+
       function cleanup() {
-        log("cleanup");
+        log('cleanup');
         this.touchPositions = {};
-        this.el = this.dragData = null;
+        this.dragData = null;
         return [move, end, cancel].forEach(function(handler) {
           return handler.off();
         });
       }
     },
     move: function(event) {
-      var deltas = { x: [], y: [] };
+      var deltas = {
+        x: [],
+        y: []
+      };
 
-      ;[].forEach.call(event.changedTouches,function(touch, index) {
+      event.preventDefault();
+
+      [].forEach.call(event.changedTouches, function(touch, index) {
         var lastPosition = this.touchPositions[index];
         if (lastPosition) {
           deltas.x.push(touch.pageX - lastPosition.x);
@@ -70,129 +80,162 @@
         }
         lastPosition.x = touch.pageX;
         lastPosition.y = touch.pageY;
-      }.bind(this))
+      }.bind(this));
 
       this.elTranslation.x += average(deltas.x);
       this.elTranslation.y += average(deltas.y);
+      this.el.style["pointer-events"] = "none";
+      this.el.style["opacity"] = "0.5";
       writeTransform(this.el, this.elTranslation.x, this.elTranslation.y);
-    },
-    dragend: function(event) {
 
-      // we'll dispatch drop if there's a target, then dragEnd. If drop isn't fired
-      // or isn't cancelled, we'll snap back
-      // drop comes first http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#drag-and-drop-processing-model
-      log("dragend");
-
-      var target = elementFromTouchEvent(this.el,event)
-
-      if (target) {
-        log("found drop target " + target.tagName);
-        this.dispatchDrop()
-      } else {
-        log("no drop target, scheduling snapBack")
-        once(doc, "dragend", this.snapBack, this);
+      if (this.elTranslation.x >= 5 || this.elTranslation.x <= -5 ||
+          this.elTranslation.y >= 5 || this.elTranslation.y <= -5) {
+        this.isClick = false;
       }
 
-      var dragendEvt = doc.createEvent("Event");
-      dragendEvt.initEvent("dragend", true, true);
+      this.dispatchDragEvent('drag', this.source);
+
+      var target = elementFromTouchEvent(this.el, event);
+
+      if (target === null || target == this.source) {
+        return;
+      }
+
+      if (target !== this.prevTarget) {
+        if (this.prevTarget !== undefined) {
+          this.dispatchDragEvent('dragleave', this.prevTarget);
+        }
+        this.dispatchDragEvent('dragenter', target);
+        this.prevTarget = target;
+      }
+      this.dispatchDragEvent('dragover', target);
+    },
+    click: function(event) {
+      log('click');
+
+      var clickEvt = doc.createEvent('MouseEvents');
+      clickEvt.initEvent('click', true, true);
+      this.el.dispatchEvent(clickEvt);
+    },
+    dragend: function(event) {
+      log('dragend');
+
+      var target = elementFromTouchEvent(this.el, event);
+
+      if (target && target != this.source) {
+        log('found drop target ' + target.tagName);
+        this.dispatchDrop(target);
+      } else {
+        log('no drop target, scheduling snapBack');
+        document.body.removeChild(this.el);
+      }
+
+      var dragendEvt = doc.createEvent('Event');
+      dragendEvt.initEvent('dragend', true, true);
       this.el.dispatchEvent(dragendEvt);
     },
-    dispatchDrop: function() {
+    dispatchDrop: function(target) {
       var snapBack = true;
 
-      var dropEvt = doc.createEvent("Event");
-      dropEvt.initEvent("drop", true, true);
+      var dropEvt = doc.createEvent('Event');
+      dropEvt.initEvent('drop', true, true);
       dropEvt.dataTransfer = {
         getData: function(type) {
           return this.dragData[type];
         }.bind(this)
       };
       dropEvt.preventDefault = function() {
-         // https://www.w3.org/Bugs/Public/show_bug.cgi?id=14638 - if we don't cancel it, we'll snap back
-        snapBack = false;
-        writeTransform(this.el, 0, 0);
+        document.body.removeChild(this.el);
       }.bind(this);
-
-      once(doc, "drop", function() {
-        log("drop event not canceled");
-        if (snapBack) this.snapBack()
-      },this);
 
       target.dispatchEvent(dropEvt);
     },
-    snapBack: function() {
-      once(this.el, "webkitTransitionEnd", function() {
-        this.el.style["-webkit-transition"] = "none";
-      },this);
-      setTimeout(function() {
-        this.el.style["-webkit-transition"] = "all 0.2s";
-        writeTransform(this.el, 0, 0)
-      }.bind(this));
-    },
-    dispatchDragStart: function() {
-      var evt = doc.createEvent("Event");
-      evt.initEvent("dragstart", true, true);
+    dispatchDragEvent: function(eventname, el) {
+      var evt = doc.createEvent('Event');
+      evt.initEvent(eventname, true, true);
       evt.dataTransfer = {
         setData: function(type, val) {
-          return this.dragData[type] = val;
+          this.dragData[type] = val;
         }.bind(this),
-        dropEffect: "move"
+        dropEffect: 'copy'
       };
-      this.el.dispatchEvent(evt);
+      el.dispatchEvent(evt);
     }
+  };
+
+  function getPos(el){
+    var rect = el.getBoundingClientRect();
+    var elementLeft,elementTop; //x and y
+    var scrollTop = document.documentElement.scrollTop?
+                    document.documentElement.scrollTop:document.body.scrollTop;
+    var scrollLeft = document.documentElement.scrollLeft?                   
+                     document.documentElement.scrollLeft:document.body.scrollLeft;
+    elementTop = rect.top+scrollTop;
+    elementLeft = rect.left+scrollLeft;
+    return {top: elementTop,left: elementLeft};
   }
 
   // event listeners
   function touchstart(evt) {
     var el = evt.target;
     do {
-      if (el.hasAttribute("draggable")) {
+      if (el.getAttribute('draggable') === 'true') {
         evt.preventDefault();
-        new DragDrop(evt,el);
+        var clEl = el.cloneNode(true);
+        var pos = getPos(el);
+        clEl.style.top = pos.top + 'px';
+        clEl.style.left = pos.left + 'px';
+        clEl.style.position = 'absolute';
+        document.body.appendChild(clEl);
+        new DragDrop(evt, clEl, el);
       }
-    } while((el = el.parentNode) && el != doc.body)
+    } while ((el = el.parentNode) && el !== doc.body && el !== doc);
   }
 
   // DOM helpers
-  function elementFromTouchEvent(el,event) {
-    var parent = el.parentElement;
-    var next = el.nextSibling
-    parent.removeChild(el);
+  function elementFromTouchEvent(el, event) {
+    el.style.pointerEvents = 'none';
 
     var touch = event.changedTouches[0];
-    target = doc.elementFromPoint(
-      touch[coordinateSystemForElementFromPoint + "X"],
-      touch[coordinateSystemForElementFromPoint + "Y"]
+    var target = doc.elementFromPoint(
+      touch.pageX - window.pageXOffset,
+      touch.pageY - window.pageYOffset
     );
 
-    if(next) {
-      parent.insertBefore(el, next);
-    } else {
-      parent.appendChild(el);
-    }
+    el.style.pointerEvents = '';
 
-    return target
+    return target;
   }
 
   function readTransform(el) {
-    var transform = el.style["-webkit-transform"];
-    var x = 0
-    var y = 0
-    var match = /translate\(\s*(\d+)[^,]*,\D*(\d+)/.exec(transform)
-    if(match) {
-      x = parseInt(match[1],10)
-      y = parseInt(match[2],10)
+    var transform = el.style['-webkit-transform'];
+    var x = 0;
+    var y = 0;
+    var match = /translate\(\s*(\d+)[^,]*,\D*(\d+)/.exec(transform);
+    if (match) {
+      x = parseInt(match[1], 10);
+      y = parseInt(match[2], 10);
     }
-    return { x: x, y: y };
+    return {
+      x: x,
+      y: y
+    };
   }
 
   function writeTransform(el, x, y) {
-    var transform = el.style["-webkit-transform"].replace(/translate\(\D*\d+[^,]*,\D*\d+[^,]*\)\s*/g, '');
-    el.style["-webkit-transform"] = transform + " translate(" + x + "px," + y + "px)";
+    var transform = el.style['-webkit-transform'].replace(/translate\(\D*\d+[^,]*,\D*\d+[^,]*\)\s*/g, '');
+    el.style['-webkit-transform'] = transform + ' translate(' + x + 'px,' + y + 'px) translateZ(1px)';
+  }
+
+  function clearTransform(el) {
+    var transform = el.style['-webkit-transform'].replace(/translate\(\D*\d+[^,]*,\D*\d+[^,]*\)\s*/g, '');
+    el.style['-webkit-transform'] = transform;
   }
 
   function onEvt(el, event, handler, context) {
-    if(context) handler = handler.bind(context)
+    if (context) {
+      handler = handler.bind(context);
+    }
     el.addEventListener(event, handler);
     return {
       off: function() {
@@ -201,26 +244,18 @@
     };
   }
 
-  function once(el, event, handler, context) {
-    if(context) handler = handler.bind(context)
-    function listener(evt) {
-      handler(evt);
-      return el.removeEventListener(event,listener);
-    }
-    return el.addEventListener(event,listener);
-  }
-
-
   // general helpers
   function log(msg) {
-    console.log(msg);
+    //console.log(msg);
   }
 
   function average(arr) {
-    if (arr.length === 0) return 0;
+    if (arr.length === 0) {
+      return 0;
+    }
     return arr.reduce((function(s, v) {
       return v + s;
     }), 0) / arr.length;
   }
 
-})(document);
+})(window, document);

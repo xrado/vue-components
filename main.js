@@ -21,6 +21,7 @@ Vue.component('content', {
 	template: '<input type="text" v-model="content"> <input type="checkbox" v-model="done"> <button v-on="click:onRemove($index)">X</button>'
 });
 
+
 Vue.directive('draggable', {
     bind: function (value) {
     	var self = this;
@@ -162,9 +163,9 @@ var modal = new Vue({
 		});
 		this.$el.style.top = '100px';
 		this.$el.style.left = '100px';
-		this.$el.style.position = 'absolute';
+		//this.$el.style.position = 'absolute';
 		this.$el.style.zIndex = '10000';
-		console.log(this.$el.style)
+		//console.log(this.$el.style)
 	},
 	methods: {
 		mousedown : function () {
@@ -175,6 +176,26 @@ var modal = new Vue({
 		}
 	}
 });
+
+// drag
+
+// Hammer(document.querySelector('h3')).on("dragstart drag dragend", function(event) {
+// 		event.preventDefault();
+// 		if(event.type == 'dragstart'){
+// 			this._top =  parseInt(this.style.top || '0');
+// 			this._left =  parseInt(this.style.left || '0');
+// 			this.style.position = 'relative';
+// 			this.style['z-index'] = 10000;
+// 		}
+
+// 		if(event.type == 'drag'){
+// 			this.style.top = this._top + event.gesture.deltaY + 'px';
+// 			this.style.left = this._left + event.gesture.deltaX + 'px';
+// 		}
+		
+//         //console.log(event.type,event.gesture.center,this);
+//         console.log('target',document.elementFromPoint(event.gesture.center.pageX,event.gesture.center.pageX));
+//     });
 
 
 

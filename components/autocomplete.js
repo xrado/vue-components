@@ -17,7 +17,6 @@ define(function(require){
 				context = this.context;
 			if (typeof handler == 'function') vm[this.arg] = handler.bind(context);
 			else vm[this.arg] = this.key;
-			//console.log('uu',this,arguments);
 		}
 	};
 
@@ -44,7 +43,7 @@ define(function(require){
 			keys: function (event) {
 				var self = this;
 				var key = event.keyIdentifier || event.key;
-				console.log(key,event.keyCode,event)
+
 				if(['Left','Right','Tab'].indexOf(key) != -1) return; // Ignored keys
 
 				if(['Down','Up'].indexOf(key) != -1){
@@ -61,7 +60,6 @@ define(function(require){
 				}
 				if(this.value) {
 					if(this.timer) clearTimeout(this.timer);
-					console.log('input',this.$input);
 					if(this.value && this.value.length >= this.minlen && this.options) {
 						this.timer = setTimeout(function(){
 							utils.addClass(this.$input,'loading');
@@ -98,9 +96,7 @@ define(function(require){
 				else this.$list.scrollTop = 0;
 			},
 			_select: function (index) {
-				console.log(this,arguments)
 				if(!this.suggestions || !this.suggestions.length) return;
-				console.log('selected',this,JSON.stringify(this.suggestions[+(this.selected || index)]));
 				this.select.call(this.vm,this.suggestions[+(this.selected || index)])
 				this.hide();
 			}
