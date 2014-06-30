@@ -7,7 +7,8 @@ define(function(require){
 
 	var component = Vue.extend({
 		data: {
-			value: null
+			value: null,
+			rgba: null
 		},
 		template: template,
 		ready: function(){
@@ -20,11 +21,16 @@ define(function(require){
                 if(rgb.a < 1)  self.$color.style.backgroundColor = 'rgba('+rgb.r+', '+rgb.g+', '+rgb.b+', '+rgb.a+')';
                 else self.$color.style.backgroundColor = '#'+hex.substr(-6);
                 self.value = hex;
+                self.rgba = rgb;
             });
             
             utils.nextTick(function(){
             	if(self.value) self.cp.setHex(self.value);
             	utils.addClass(self.$holder,'hide');
+            });
+
+            this.$watch('value',function(){
+            	if(!this.value) self.$color.style.backgroundColor = 'transparent';
             });
 		},
 		methods: {
@@ -36,11 +42,13 @@ define(function(require){
 			},
 			onEnter: function (event) {
 				var key = event.keyIdentifier || event.key;
-				if(key == 'Enter') this.cp.setHex(event.target.value);
+				if(key == 'Enter') {
+					if(event.target.value) this.cp.setHex(event.target.value);
+					else this.value = this.rgba = null;
+				}
 			}
 		}
 	});
-
 
 	return component;
 
