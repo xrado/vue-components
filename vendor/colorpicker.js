@@ -196,7 +196,7 @@
             ctx.h = mouse.y / slideElement.offsetHeight * 360;
             var pickerColor = hsv2rgb({ h: ctx.h, s: 1, v: 1 });
             var c = hsv2rgb({ h: ctx.h, s: ctx.s, v: ctx.v });
-            updateAlphaColor(ctx,pickerColor.hex);
+            updateAlphaColor(ctx,c.hex);
             pickerElement.style.backgroundColor = pickerColor.hex;
             ctx.callback && ctx.callback(c.hex, { h: ctx.h, s: ctx.s, v: ctx.v, a: ctx.a }, { r: c.r, g: c.g, b: c.b, a: ctx.a }, undefined, mouse);
         };
