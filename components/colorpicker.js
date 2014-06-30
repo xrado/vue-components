@@ -16,7 +16,9 @@ define(function(require){
 			this.$holder = this.$el.querySelector('div.x-colorpicker-holder');
 			this.$color = this.$el.querySelector('.x-colorpicker-color');
 			this.cp = new ColorPicker(this.$cp,function(hex, hsv, rgb) {
-                self.$color.style.backgroundColor = hex;
+				//console.log(JSON.stringify(arguments));
+                if(rgb.a < 1)  self.$color.style.backgroundColor = 'rgba('+rgb.r+', '+rgb.g+', '+rgb.b+', '+rgb.a+')';
+                else self.$color.style.backgroundColor = '#'+hex.substr(-6);
                 self.value = hex;
             });
             
@@ -24,14 +26,17 @@ define(function(require){
             	if(self.value) self.cp.setHex(self.value);
             	utils.addClass(self.$holder,'hide');
             });
-            
 		},
 		methods: {
-			onFocus: function (argument) {
+			onFocus: function () {
 				utils.removeClass(this.$holder,'hide');
 			},
-			onBlur: function (argument) {
+			onBlur: function () {
 				utils.addClass(this.$holder,'hide');
+			},
+			onEnter: function (event) {
+				var key = event.keyIdentifier || event.key;
+				if(key == 'Enter') this.cp.setHex(event.target.value);
 			}
 		}
 	});

@@ -4,7 +4,7 @@
  */
 (function(window, document, undefined) {
 
-    var picker, slide, svgNS = 'http://www.w3.org/2000/svg';
+    var picker, slide, alpha, svgNS = 'http://www.w3.org/2000/svg';
 
     // This HTML snippet is inserted into the innerHTML property of the passed color picker element
     // when the no-hassle call to ColorPicker() is used, i.e. ColorPicker(function(hex, hsv, rgb) { ... });
@@ -17,6 +17,10 @@
         '<div class="slide-wrapper">',
             '<div class="slide"></div>',
             '<div class="slide-indicator"></div>',
+        '</div>',
+        '<div class="alpha-wrapper">',
+            '<div class="alpha"></div>',
+            '<div class="alpha-indicator"></div>',
         '</div>'
     ].join('');
 
@@ -53,6 +57,20 @@
      * Create slide and picker markup
      */
     var svgAttributes = { xmlns: svgNS, version: '1.1', width: '100%', height: '100%' };
+    alpha = $('svg', svgAttributes,
+                [
+                    $('defs', {},
+                        $('linearGradient', { id: 'gradient-alpha', x1: '0%', y1: '100%', x2: '0%', y2: '0%'},
+                            [
+                                $('stop', { offset: '0%', 'stop-color': '#FFFFFF', 'stop-opacity': '0' }),
+                                $('stop', { offset: '100%', 'stop-color': '#000000', 'stop-opacity': '1' })
+                            ]
+                        )
+                    ),
+                    $('rect', { x: '0', y: '0', width: '100%', height: '100%', fill: 'url(#gradient-alpha)'})
+                ]
+            );
+
     slide = $('svg', svgAttributes,
                 [
                     $('defs', {},
@@ -118,7 +136,7 @@
         var r = Math.floor(R * 255);
         var g = Math.floor(G * 255);
         var b = Math.floor(B * 255);
-        return { r: r, g: g, b: b, hex: "#" + (16777216 | b | (g << 8) | (r << 16)).toString(16).slice(1) };
+        return { r: r, g: g, b: b, hex: "#" + (16777216 | b | (g << 8) | (r << 16)).toString(16).slice(1), a:hsv.a };
     }
 
     /**
@@ -146,7 +164,26 @@
                       (r - g) / C + 4);
         H = (H % 6) * 60;
         S = C == 0 ? 0 : C / V;
-        return { h: H, s: S, v: V };
+        return { h: H, s: S, v: V, a:rgb.a };
+    }
+
+    function updateAlphaColor (ctx,color) {
+        ctx.alphaGradient.forEach(function(s){ 
+            s.setAttribute('stop-color',color); 
+        });
+    }
+
+    /**
+     * Return click event handler for the slider.
+     * Sets picker background color and calls ctx.callback if provided.
+     */
+    function alphaListener(ctx, alphaElement, pickerElement) {
+        return function(evt) {
+            var mouse = mousePosition(evt, alphaElement);
+            ctx.a = 1 - (mouse.y / alphaElement.offsetHeight);
+            var c = hsv2rgb(ctx);
+            ctx.callback && ctx.callback(c.hex, { h: ctx.h, s: ctx.s, v: ctx.v, a: ctx.a  }, { r: c.r, g: c.g, b: c.b, a: ctx.a }, undefined, undefined, mouse);
+        };
     }
 
     /**
@@ -159,8 +196,9 @@
             ctx.h = mouse.y / slideElement.offsetHeight * 360;
             var pickerColor = hsv2rgb({ h: ctx.h, s: 1, v: 1 });
             var c = hsv2rgb({ h: ctx.h, s: ctx.s, v: ctx.v });
+            updateAlphaColor(ctx,pickerColor.hex);
             pickerElement.style.backgroundColor = pickerColor.hex;
-            ctx.callback && ctx.callback(c.hex, { h: ctx.h, s: ctx.s, v: ctx.v }, { r: c.r, g: c.g, b: c.b }, undefined, mouse);
+            ctx.callback && ctx.callback(c.hex, { h: ctx.h, s: ctx.s, v: ctx.v, a: ctx.a }, { r: c.r, g: c.g, b: c.b, a: ctx.a }, undefined, mouse);
         };
     }
 
@@ -177,7 +215,8 @@
             ctx.s = mouse.x / width;
             ctx.v = (height - mouse.y) / height;
             var c = hsv2rgb(ctx);
-            ctx.callback && ctx.callback(c.hex, { h: ctx.h, s: ctx.s, v: ctx.v }, { r: c.r, g: c.g, b: c.b }, mouse);
+            updateAlphaColor(ctx,c.hex);
+            ctx.callback && ctx.callback(c.hex, { h: ctx.h, s: ctx.s, v: ctx.v, a: ctx.a }, { r: c.r, g: c.g, b: c.b, a: ctx.a }, mouse);
         };
     }
 
@@ -196,26 +235,35 @@
         this.h = 0;
         this.s = 1;
         this.v = 1;
+        this.a = 1;
 
         if (!callback) {
             // call of the form ColorPicker(element, funtion(hex, hsv, rgb) { ... }), i.e. the no-hassle call.
 
             var element = slideElement;
             element.innerHTML = colorpickerHTMLSnippet;
-
+            this.element = element;
+            this.alphaElement = element.getElementsByClassName('alpha')[0];
             this.slideElement = element.getElementsByClassName('slide')[0];
             this.pickerElement = element.getElementsByClassName('picker')[0];
+            this.alphaIndicator = element.getElementsByClassName('alpha-indicator')[0];
             this.slideIndicator = element.getElementsByClassName('slide-indicator')[0];
             this.pickerIndicator = element.getElementsByClassName('picker-indicator')[0];
 
             ColorPicker.positionIndicators(
+                this.alphaIndicator,
                 this.slideIndicator,
                 this.pickerIndicator,
                 {x: 0, y: 0},
+                {x: 0, y: 0},
                 {x: 0, y: 0}
             );
-            this.callback = function(hex, hsv, rgb, pickerCoordinate, slideCoordinate) {
-                ColorPicker.positionIndicators(this.slideIndicator, this.pickerIndicator, slideCoordinate, pickerCoordinate);
+            this.callback = function(hex, hsv, rgb, pickerCoordinate, slideCoordinate, alphaCoordinate) {
+                ColorPicker.positionIndicators(this.alphaIndicator, this.slideIndicator, this.pickerIndicator, alphaCoordinate, slideCoordinate, pickerCoordinate);
+                if(this.a < 1) {
+                    var alphaHex = Math.round(255 * this.a).toString(16);
+                    hex = hex.replace('#','#' + (alphaHex.length == 1 ? '0'+alphaHex : alphaHex ) );
+                }
                 pickerElement(hex, hsv, rgb);
             };
 
@@ -223,11 +271,13 @@
             this.callback = callback;
             this.pickerElement = pickerElement;
             this.slideElement = slideElement;
+            this.alphaElement = alphaElement;
         }
+        this.alpha_listener = alphaListener(this, this.alphaElement, this.pickerElement);
         this.slide_listener = slideListener(this, this.slideElement, this.pickerElement);
         this.picker_listener = pickerListener(this, this.pickerElement);
         if (!callback) {
-            this.fixIndicators(this.slideIndicator, this.pickerIndicator);
+            this.fixIndicators(this.alphaIndicator, this.slideIndicator, this.pickerIndicator);
         }
 
         // Generate uniq IDs for linearGradients so that we don't have the same IDs within one document.
@@ -235,6 +285,7 @@
 
         var slideClone = slide.cloneNode(true);
         var pickerClone = picker.cloneNode(true);
+        var alphaClone = alpha.cloneNode(true);
 
         var hsvGradient = slideClone.getElementById('gradient-hsv');
 
@@ -253,12 +304,16 @@
         whiteAndBlackRects[1].setAttribute('fill', 'url(#' + blackAndWhiteGradients[0].id + ')');
 
         this.slideElement.appendChild(slideClone);
+        this.alphaElement.appendChild(alphaClone);
         this.pickerElement.appendChild(pickerClone);
 
         uniqID++;
 
+        enableDragging(this.alphaElement, this.alpha_listener);
         enableDragging(this.slideElement, this.slide_listener);
         enableDragging(this.pickerElement, this.picker_listener);
+
+        this.alphaGradient =  this.element.querySelectorAll('#gradient-alpha stop');
     }
 
    /**
@@ -307,7 +362,8 @@
     };
 
     ColorPicker.hex2rgb = function(hex) {
-        return { r: parseInt(hex.substr(1, 2), 16), g: parseInt(hex.substr(3, 2), 16), b: parseInt(hex.substr(5, 2), 16) };
+        if(hex.length > 7) return { r: parseInt(hex.substr(3, 2), 16), g: parseInt(hex.substr(5, 2), 16), b: parseInt(hex.substr(7, 2), 16) , a: parseInt(hex.substr(1, 2), 16)/255};
+        else return { r: parseInt(hex.substr(1, 2), 16), g: parseInt(hex.substr(3, 2), 16), b: parseInt(hex.substr(5, 2), 16) , a: 1};
     };
 
     /**
@@ -321,6 +377,7 @@
         ctx.h = hsv.h % 360;
         ctx.s = hsv.s;
         ctx.v = hsv.v;
+        ctx.a = hsv.a;
 
         var c = hsv2rgb(ctx);
 
@@ -329,13 +386,19 @@
             x: 0    // not important
         };
 
+        var mouseAlpha = {
+            y: ctx.alphaElement.offsetHeight - (ctx.a * ctx.alphaElement.offsetHeight),
+            x: 0    // not important
+        };
+        updateAlphaColor(ctx,c.hex);
+
         var pickerHeight = ctx.pickerElement.offsetHeight;
         var mousePicker = {
             x: ctx.s * ctx.pickerElement.offsetWidth,
             y: pickerHeight - ctx.v * pickerHeight
         };
         ctx.pickerElement.style.backgroundColor = hsv2rgb({ h: ctx.h, s: 1, v: 1 }).hex;
-        ctx.callback && ctx.callback(hex || c.hex, { h: ctx.h, s: ctx.s, v: ctx.v }, rgb || { r: c.r, g: c.g, b: c.b }, mousePicker, mouseSlide);
+        ctx.callback && ctx.callback(c.hex, { h: ctx.h, s: ctx.s, v: ctx.v, a: ctx.a }, rgb || { r: c.r, g: c.g, b: c.b, a: c.a }, mousePicker, mouseSlide, mouseAlpha);
 
         return ctx;
     }
@@ -371,7 +434,10 @@
      * @param {object} mouseSlide Coordinates of the mouse cursor in the slide area.
      * @param {object} mousePicker Coordinates of the mouse cursor in the picker area.
      */
-    ColorPicker.positionIndicators = function(slideIndicator, pickerIndicator, mouseSlide, mousePicker) {
+    ColorPicker.positionIndicators = function(alphaIndicator, slideIndicator, pickerIndicator, mouseAlpha, mouseSlide, mousePicker) {
+        if (mouseAlpha) {
+            alphaIndicator.style.top = (mouseAlpha.y - alphaIndicator.offsetHeight/2) + 'px';
+        }
         if (mouseSlide) {
             slideIndicator.style.top = (mouseSlide.y - slideIndicator.offsetHeight/2) + 'px';
         }
@@ -384,7 +450,8 @@
     /**
      * Helper to enable dragging on indicators.
      */
-    ColorPicker.prototype.fixIndicators = function(slideIndicator, pickerIndicator) {
+    ColorPicker.prototype.fixIndicators = function(alphaIndicator, slideIndicator, pickerIndicator) {
+        enableDragging(alphaIndicator, this.alpha_listener);
         enableDragging(slideIndicator, this.slide_listener);
         enableDragging(pickerIndicator, this.picker_listener);
     };

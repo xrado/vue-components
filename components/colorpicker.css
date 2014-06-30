@@ -1,18 +1,15 @@
 /* Common stuff */
-.picker-wrapper, 
-.slide-wrapper {
+.picker-wrapper, .slide-wrapper, .alpha-wrapper {
     position: relative;
     float: left;
 }
-.picker-indicator,
-.slide-indicator {
+.picker-indicator, .slide-indicator, .alpha-indicator {
     position: absolute;
     left: 0;
     top: 0;
     pointer-events: none;
 }
-.picker,
-.slide {
+.picker, .slide, .alpha {
     cursor: crosshair;
     float: left;
 }
@@ -33,11 +30,20 @@
     width: 150px;
     height: 150px;
 }
-.cp-normal .slide {
+.cp-normal .slide, .cp-normal .alpha {
     width: 20px;
     height: 150px;
+    
+    background: white;
+    background: 
+        linear-gradient(135deg, transparent 75%, rgba(55, 55, 55, .4) 0%) 0 0,
+        linear-gradient(-45deg, transparent 75%, rgba(55, 55, 55, .4) 0%) 5px 5px,
+        linear-gradient(135deg, transparent 75%, rgba(55, 55, 55, .4) 0%) 5px 5px,
+        linear-gradient(-45deg, transparent 75%, rgba(55, 55, 55, .4) 0%) 0 0,
+        white;
+    background-size: 10px 10px;
 }
-.cp-normal .slide-wrapper {
+.cp-normal .slide-wrapper, .cp-normal .alpha-wrapper {
     margin-left: 10px;
 }
 .cp-normal .picker-indicator {
@@ -51,7 +57,7 @@
     background-color: white;
     pointer-events: none;
 }
-.cp-normal .slide-indicator {
+.cp-normal .slide-indicator, .cp-normal .alpha-indicator {
     width: 100%;
     height: 10px;
   
@@ -64,5 +70,17 @@
     pointer-events: none;
 }
 
-.x-colorpicker-holder { position:relative; }
-.x-colorpicker { position:absolute; }
+x-colorpicker .x-colorpicker-holder { position:relative; }
+x-colorpicker .x-colorpicker { position:absolute; }
+x-colorpicker .x-colorpicker-color { background: transparent; }
+x-colorpicker .input-group { 
+    background: white;
+    background: 
+        linear-gradient(135deg, transparent 75%, rgba(55, 55, 55, .4) 0%) 0 0,
+        linear-gradient(-45deg, transparent 75%, rgba(55, 55, 55, .4) 0%) 5px 5px,
+        linear-gradient(135deg, transparent 75%, rgba(55, 55, 55, .4) 0%) 5px 5px,
+        linear-gradient(-45deg, transparent 75%, rgba(55, 55, 55, .4) 0%) 0 0,
+        white;
+    background-size: 10px 10px;
+    border-radius: 4px;
+}

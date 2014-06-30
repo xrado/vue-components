@@ -1,6 +1,8 @@
 <div class="input-group">
-  <span class="x-colorpicker-color input-group-addon">&nbsp;</span>
-  <input type="text" name="" value="{{value}}" placeholder="" v-on="focus: onFocus, blur: onBlur" class="x-colorpicker-input form-control">
+  <span class="input-group-addon x-colorpicker-color">
+  	&nbsp;
+  </span>
+  <input type="text" v-model="value" placeholder="" v-on="focus: onFocus, blur: onBlur, keyup: onEnter" class="x-colorpicker-input form-control">
 </div>
 <div class="x-colorpicker-holder">
 	<div class="x-colorpicker cp-normal"></div>
