@@ -183,13 +183,13 @@
     do {
       if (el.getAttribute('draggable') === 'true') {
         evt.preventDefault();
-        var clEl = el.cloneNode(true);
+        var ghost = el.cloneNode(true);
         var pos = getPos(el);
-        clEl.style.top = pos.top + 'px';
-        clEl.style.left = pos.left + 'px';
-        clEl.style.position = 'absolute';
-        document.body.appendChild(clEl);
-        new DragDrop(evt, clEl, el);
+        ghost.style.top = pos.top + 'px';
+        ghost.style.left = pos.left + 'px';
+        ghost.style.position = 'absolute';
+        document.body.appendChild(ghost);
+        new DragDrop(evt, ghost, el);
       }
     } while ((el = el.parentNode) && el !== doc.body && el !== doc);
   }
